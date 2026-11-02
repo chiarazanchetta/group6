@@ -1,10 +1,10 @@
 ---
 title: "Group Assignment 2: Text Analytics"
 author:
-  - "Student 1: XXX"
+  - "Student 1: Chiara Zanchetta"
   - "Student 2: XXX"
   - "Student 3: XXX"
-  - "Student 4: XXX"
+
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -36,6 +36,7 @@ library(tidyverse)
 -   The use of GenAI is allowed, but it must be clearly acknowledged in the section at the end of this document. Be as transparent as possible!
 
 ```{r}
+
 # install and load all used packages and libraries here!
 
 
