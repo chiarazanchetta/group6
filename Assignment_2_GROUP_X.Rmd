@@ -1,0 +1,208 @@
+---
+title: "Group Assignment 2: Text Analytics"
+author:
+  - "Student 1: XXX"
+  - "Student 2: XXX"
+  - "Student 3: XXX"
+  - "Student 4: XXX"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+    self_contained: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+library(tidyverse)
+```
+
+# Instructions
+
+-   Answer the questions below in this R Markdown (.Rmd) file.
+-   Explain your coding decisions and output in detail.
+-   Keep your code as simple as possible!
+-   Knit the file to HTML.
+-   Submit the knitted HTML file and the raw .Rmd file to "Group Assignment 2" on Toledo (you may want to zip the files)
+-   Make sure your documents are named like this: Assignment_2_GROUP_X.
+-   Fill in the names of all group members in the YAML header above!
+-   This group assignment counts for 1 out of 20 points.
+-   Make sure your code is reproducible (hint: set.seed()!).
+-   This is a **group** assignment for groups of 3-4 members. If you do not meet this guideline, you will receive 0/1 for this assignment.
+-   You will receive questions about this assignment during the oral exam. Even if you do not submit this assignment, you will still receive questions about it during the oral exam.
+-   The use of GenAI is allowed, but it must be clearly acknowledged in the section at the end of this document. Be as transparent as possible!
+
+```{r}
+# install and load all used packages and libraries here!
+
+
+# remember to control randomness
+
+
+# read in the data
+
+```
+
+# Data
+
+You will be working with a subset of human rights textual data originating from the PULSAR project, maintained by the Text(Co)Lab at the University of Pittsburgh. The datasets contain web-scraped news feeds, blog posts, expert notes, interviews, and other news-like texts published by organizations working on human rights violations and protection. You will work with data from three organizations: (1) Anti-Slavery International; (2) the Center for Victims of Torture; and (3) Save the Children.
+
+The dataset contains the following variables:
+
+- `source`: the organization that published the text (Anti-Slavery International, Center for Victims of Torture, or Save the Children)
+- `country`: the country the text refers to
+- `date`: the publication date of the text
+- `text`: the full text of the document
+- `slavery`: whether the text is about slavery (1) or not (0), as coded by a human annotator
+
+For more information, see: Text(Co)Lab. (2020). *PULSAR - Data* (Version 2) [Data set]. Harvard Dataverse. https://doi.org/10.7910/DVN/0MEMHG
+Link: https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/0MEMHG
+
+
+# Exercise 1. Data Pre-Processing and Data Visualization 
+
+### Questions
+
+**Question 1.** First, if feasible, get to know your texts. Read the text entries and try to spot weird'' and noisy’’ elements (e.g., URLs, emails, emojis, boilerplate text, and editorial notes). In short, look for anything that adds unnecessary detail and does not relate to human rights. Once you have done that, pre-process your corpus of human rights news-like texts using the cleaning techniques you have seen in class that are appropriate given the nature and peculiarities of the data. Explain all the pre-processing steps you applied and argue why you applied them. Write your R code below and explain EVERY SINGLE LINE with a comment (#) in your own words *(max. 400 words)*
+
+*Hint*: If you find something peculiar in the texts and are unsure how to remove it with regular expressions, ask a GenAI tool for help. If you do, report what it suggested and whether the suggestion was useful.  *(max. 200 words)*
+
+```{r}
+
+```
+
+**Answer**
+
+**Question 2.** Next, conduct a frequency analysis of unigrams, bigrams and trigrams in your pre-processed corpus. For each, report the most frequent terms (e.g., the top 20). Then comment on the results: Which terms and collocations dominate the corpus? Do they relate to human rights issues or do you still see noise that your pre-processing missed? What do bigrams and trigrams reveal that unigrams do not? Do the most frequent n-grams differ across the three organizations? Write your R code below and explain EVERY SINGLE LINE with a comment (#) in your own words. *(max. 500 words)*
+
+```{r}
+
+
+```
+
+**Answer**
+
+**Question 3.** Create wordclouds of unigrams, bigrams and trigrams. Be as creative as possible and play around with the arguments of the plotting function you use. Briefly comment on what the wordclouds show. Write your R code below and explain EVERY SINGLE LINE with a comment (#) *(max. 150 words)*
+
+```{r}
+
+```
+
+**Answer**
+
+**Question 4** Visualize the 15 most frequent words across all human rights texts in the corpus. Write your R code below and explain EVERY SINGLE LINE with a comment (#)
+
+```{r}
+
+```
+
+
+# Exercise 2. Sentiment Analysis
+
+**Question 1.** Run a sentiment analysis of the corpus using the Lexicoder Sentiment Dictionary, which comes with quanteda. Explore the results in the way you find most insightful (e.g., distributions, plots, comparisons across organizations or over time). Then reflect on the method: Is it appropriate? And does it make sense to run a dictionary-based sentiment analysis on this kind of data? Why or why not? Argue. Write your R code below and explain EVERY SINGLE LINE with a comment (#) *(max. 500 words)*
+
+```{r}
+
+```
+
+**Answer**
+
+**Question 2.** Run a sentiment analysis of the corpus using NRC Word-Emotion Association Lexicon. Explore the results in the way you find most insightful (e.g., distributions, plots, comparisons across organizations or over time). Then reflect on the method: Is it appropriate? And does it make sense to run a dictionary-based sentiment analysis on this kind of data? Why or why not? Argue. Write your R code below and explain EVERY SINGLE LINE with a comment (#) *(max. 500 words)*
+
+```{r}
+
+```
+
+**Answer**
+
+**Question 3.** In your own words, explain the difference between the Lexicoder Sentiment Dictionary and the NRC Word-Emotion Association Lexicon. Then name three text data settings in which running a sentiment analysis makes sense, and explain why. *(max. 500 words)*
+
+**Answer**
+
+
+# Exercise 3. Topic Modeling (LDA)
+
+Fit Latent Dirichlet Allocation (LDA) topic models to the human rights corpus. To choose the number of topics (K), estimate models for several different values of K and compare their perplexity and coherence scores. Plot the scores against K and decide which number of topics you would choose. Then, for your chosen K, fit models with several different values of alpha (the default value and the value suggested in our Homework book!) and compare how alpha changes the topic distributions.Write your R code below and explain EVERY SINGLE LINE with a comment (#) in your own words. *(max. 500 words)*
+
+*Hint:* Split your data into a training set and a test set when calculating the perplexity score. Re-fit the models on the training set and estimate the perplexity score on the test set! A low alpha means that each document is dominated by a few topics, while a high alpha means that documents are mixtures of many topics. Remember to control randomness.
+
+```{r}
+
+```
+
+
+**Question 1.** What is your final model, and why did you choose it? Discuss. *(max. 300 words)*
+
+**Answer**
+
+**Question 2.** Interpret the topics by plotting the most representative words for each topic. Formulate a clear conclusion and discuss it. *(max. 500 words)*
+
+**Answer**
+
+**Question 3.** In your opinion, is LDA suited to this kind of corpus and research question? How could we improve on it? *(max. 300 words)*
+
+**Answer**
+
+**Question 4.** In your own words, explain what alpha, the perplexity score and the coherence score are. *(max. 500 words)*
+
+**Answer**
+
+
+# Exercise 4. Supervised ML: Predicting if a text about slavery or not
+
+*Question 1.* Using the human-coded slavery variable as your outcome, train at least two supervised machine learning classifiers (e.g., Naive Bayes and a logistic regression/a random forest) to predict whether a text is about slavery. Split your data into a training set and a test set. Write your R code below and explain EVERY SINGLE LINE with a comment (#) in your own words.
+
+```{r}
+
+```
+
+
+*Question 2.* Evaluate your models on the test set using a confusion matrix, accuracy, precision, recall and F1 score. Which model performs best and why? Check how balanced the two classes are and discuss what this means for your evaluation. *(max. 300 words)*
+
+*Hint:* If your classes are unbalanced, use SMOTE to balance them. Apply it to the training set only, never to the test set!
+
+```{r}
+
+```
+
+**Answer**
+
+*Question 3.* Which words are most predictive of a text being about slavery? Do they make substantive sense? Interpret. *(max. 500 words)* 
+
+```{r}
+
+```
+
+**Answer**
+
+*Question 4.* Note that one of the three organizations is Anti-Slavery International: Could your model simply be learning who wrote the text rather than what it is about? What would be your suggestion? Discuss. *(max. 300 words)*
+
+
+**Answer**
+
+
+# Acknowledgement of GenAI Use
+
+If you have used GenAI for this assignment, describe in detail how you used it. Evaluate yourselves: What have you learned using it? Was it useful? How? Reflect. *(max. 700 words)*
+
+**Answer:**
+
+# Acknowledgement of Group Work and Submission
+
+All group members must confirm in writing that they have reviewed and approved the complete final submission and agree to submit it as their collective work. Every group member must confirm below.
+
+| Name | Confirmation | Date |
+|:-----|:-------------|:-----|
+|      |              |      |
+|      |              |      |
+|      |              |      |
+|      |              |      |
+
+
+
+
+
+
