@@ -1,0 +1,211 @@
+---
+title: "Group Assignment 3: Basic Webscaping"
+author:
+  - "Student 1: XXX"
+  - "Student 2: XXX"
+  - "Student 3: XXX"
+  - "Student 4: XXX"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+    self_contained: true
+---
+
+# Instructions
+
+-   Answer the questions below in this R Markdown (.Rmd) file.
+-   Explain your coding decisions and output in detail.
+-   Keep your code as simple as possible!
+- !NOTE!: Before starting the assignment, clean your R environment so that only objects relevant to these tasks are saved. You can do this by running `rm(list = ls())` in console or by clicking the broom icon in RStudio Environment pane.
+- !NOTE!: Instead of knitting your .Rmd file, run all code chunks and then save your R environment by running the provided chunk at the end of the .Rmd file. Submit the resulting environment.rds file together with your .Rmd file. This is done to preclude you from re-scraping the websites upon knitting. 
+-   Submit the environment.rds file and the raw .Rmd file to "Group Assignment 3" on Toledo (you may want to zip the files)
+-   Make sure your documents are named like this: Assignment_3_GROUP_X.
+-   Fill in the names of all group members in the YAML header above!
+-   This group assignment counts for 1 out of 20 points.
+-   Make sure your code is reproducible (hint: set.seed()!).
+-   This is a **group** assignment for groups of 3-4 members. If you do not meet this guideline, you will receive 0/1 for this assignment.
+-   You will receive questions about this assignment during the oral exam. Even if you do not submit this assignment, you will still receive questions about it during the oral exam.
+-   The use of GenAI is allowed, but it must be clearly acknowledged in the section at the end of this document. Be as transparent as possible!
+
+```{r}
+# install and load all used packages and libraries here!
+
+
+# remember to control randomness
+
+```
+
+# Exercise 1. Robots.txt
+
+Describe in your own words what a robots.txt file is. Compare the robots.txt files of Bluesky, an American microblogging social media service and X (former Twitter). How scraping-friendly are these websites? Which one is safer to scrape? Justify your answer. *(max. 500 words)*
+
+**Answer:**
+
+# Exercise 2
+
+# Case/data description: Jobat data
+
+Jobat is a Belgian website, where you can find a lot of job vacancies: <https://www.jobat.be/en> Your job is to scrape the website and explore the vacancies that are currently published. You can scrape the webpage in Dutch or in English.
+
+### Questions
+
+**Question 1.** Are you allowed to scrape data from the Jobat website? Explain in detail how you have checked this and what is or is not allowed to be scraped from this website.*(max. 500 words)*
+
+**Answer:**
+
+**Question 2.** Scrape the job titles of the first 50 HR-related job vacancies: <https://www.jobat.be/en/jobs/human-resources>. Comment every single line with #. 
+
+```{r}
+
+
+# display the final dataset
+```
+
+**Question 3.** Scrape the *jobtitles*, *location* of the position (Antwerp, Brussels, Ghent, etc), *type of contract* (permanent, freelance, fixed-term, etc) and the *salary range* for all first 50 jobs in HR. Make one dataframe including all four features. If some entries are missing, fill in with NAs. Comment every single line with #.
+
+```{r}
+
+
+
+# display the final dataset
+
+
+```
+
+**Question 4.** Select another job category of your interest. Use the same code to scrape the job titles, locations, contract and salary. How many jobs are there in each job category? Comment every single line with #.
+
+```{r}
+
+
+# display the final dataset
+
+
+```
+
+# Exercise 3
+
+# Case/data description: Center for Victims of Torture 
+
+The Center for Victims of Torture is a US-based non-profit organisation that provides healing care to torture survivors and advocates for human rights: <https://www.cvt.org>
+
+Besides information on its programs, CVT publishes articles written by its staff and experts. Some of them are presented in the category *Expert Voices*.
+
+Your task is to scrape the *Expert Voices* page(s). 
+
+**If you think that scraping the page is not legal, do not scrape it and explain why you think this is the case.**
+
+Identify yourself in the user agent and use a delay of at least 7-20 seconds between requests.
+
+```{r}
+# check if you can scrape it via the robots.txt file
+robotstxt::paths_allowed(paths = "...", domain = "www.cvt.org")
+```
+
+```{r}
+# be polite and identify yourself
+# delay: be sure to maintain a polity crawl delay: I would recommend to go as from 7 seconds to 20.
+
+bow("https://www.cvt.org", user_agent = "your name, email, and why you are doing it", delay = )
+```
+
+## Questions
+
+**Question 1.** Are you allowed to scrape data from the CVT website? Can you republish the full texts? Explain in detail how you checked this and which parts of the website are or are not allowed to be scraped. In your answer, consider at least: (1) the `robots.txt` file AND; (2) the privacy policy and any terms of use AND; (3) the copyright notice in the footer of the website *(max. 500 words)*.
+
+*Answer*:
+
+**Question 2.** Explain in your own words what the function does and comment every single line with #. *(max. 300 words)*.
+
+```{r}
+get_text = function(blog_post_link){
+  Sys.sleep(12)                       
+  blog_post_page = read_html(blog_post_link)
+  blog_post_text = blog_post_page %>%
+    html_nodes("p") %>%             
+    html_text(trim = TRUE) %>%
+    paste(collapse = " ")         
+  return(blog_post_text)
+}
+```
+
+*Answer*:
+
+**Question 3.** Scrape the titles of the articles on the first page of the *Expert Voices* category: <https://www.cvt.org/article-categories/expert-voices/>. Comment every single line with #.
+
+```{r}
+
+link = ""
+
+page = read_html()
+
+name = page %>% html_nodes("") %>% html_text(trim = )
+
+name
+
+```
+
+**Question 4.**  Scrape the *title*, *publication date*, *category* and *URL* of all articles on the first **three** pages of *Expert Voices* by filling out blanks (_). Make one dataframe including all four features. If some entries are missing, fill in with NAs. Hint: look at how the URL changes (<https://www.cvt.org/article-categories/expert-voices/>) when you go to page 1, 2 and page 3, etc. Comment every single line with #.
+
+```{r}
+all_names = c()
+all_links = c()
+all_dates = c()
+
+for (i in 1:_) {
+  if (i == 1) {
+    page = read_html("https://www.cvt.org/article-categories/expert-voices/")
+  } else {
+    page = read_html(paste0(base, _, "/"))
+  }
+  nodes = page %>% html_nodes("_")
+  all_names = c(_, nodes %>% html_text(trim = _))
+  all_links = c(_, nodes %>% html_attr())
+  all_dates = c(_, page %>% html_nodes() %>% html_text(trim = _ ))
+  Sys.sleep(_)
+}
+
+cvt = data.frame(name = _, date = _, link = _)
+
+cvt$text = sapply(cvt$_, _)
+```
+
+```{r}
+# display your scraped dataset here
+
+```
+
+
+**Question 5. ** Some CVT articles describe the experiences of torture survivors. Imagine you wanted to scrape the full text of all such articles for a text analysis project. Which ethical and legal issues would you need to consider? How would you proceed? Would you scrape or not? *(max. 500 words)*
+
+**Answer:**
+
+**NOTE: Instead of knitting your .Rmd file, run all code chunks and then save your R environment by running the chunk below. Submit the resulting environment_GROUP_X.rds file together with your .Rmd file.** 
+
+```{r}
+# save every object in the global environment
+
+saveRDS(mget(ls()), "environment_GROUP_X.rds") # CHANGE YOUR GROUP NUMBER!
+```
+
+# Acknowledgement of GenAI Use
+
+If you have used GenAI for this assignment, describe in detail how you used it. Evaluate yourselves: What have you learned using it? Was it useful? How? Reflect. *(max. 700 words)*
+
+**Answer:**
+
+# Acknowledgement of Group Work and Submission
+
+All group members must confirm in writing that they have reviewed and approved the complete final submission and agree to submit it as their collective work. Every group member must confirm below.
+
+| Name | Confirmation | Date |
+|:-----|:-------------|:-----|
+|      |              |      |
+|      |              |      |
+|      |              |      |
+|      |              |      |
+
+
