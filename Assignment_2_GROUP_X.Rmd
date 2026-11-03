@@ -39,11 +39,31 @@ library(tidyverse)
 
 # install and load all used packages and libraries here!
 
+install.packages("tidyverse")
+install.packages("tidytext")
+install.packages("stringr")
+install.packages("readr")
+install.packages("quanteda")
+install.packages("quanteda.textplots")
+install.packages("quanteda.textstats")
+install.packages("syuzhet")
+
+library(tidyverse)
+library(tidytext)
+library(stringr)
+library(readr)
+library(quanteda)
+library("quanteda.textplots")
+library("quanteda.textstats")
+library(syuzhet)
 
 # remember to control randomness
 
+set.seed(123)
 
 # read in the data
+
+df <- read_csv("human_rights_text_data_labeled.csv")
 
 ```
 
@@ -69,37 +89,179 @@ Link: https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/0
 
 **Question 1.** First, if feasible, get to know your texts. Read the text entries and try to spot weird'' and noisy’’ elements (e.g., URLs, emails, emojis, boilerplate text, and editorial notes). In short, look for anything that adds unnecessary detail and does not relate to human rights. Once you have done that, pre-process your corpus of human rights news-like texts using the cleaning techniques you have seen in class that are appropriate given the nature and peculiarities of the data. Explain all the pre-processing steps you applied and argue why you applied them. Write your R code below and explain EVERY SINGLE LINE with a comment (#) in your own words *(max. 400 words)*
 
+**Answer** Before starting the text analysis, I first looked at the dataset and at some original articles from each organization to see what kind of information they contained. I noticed that the texts included not only article content, but also website code, links, email addresses and contact details. These elements were not relevant to our analysis, so I decided to remove them.
+
+First, I converted all the text to lowercase. This is important because words written with capital and small letters should be treated as the same word. I then removed HTML scripts and comments, as they sometimes contained technical website information rather than actual article content.
+
+Next, I removed URLs, website links and email addresses. I also removed editorial notes and contact information, such as the interview details that appeared at the end of some articles. I did this because I wanted to focus on the actual content of the articles, rather than information about the websites or the organizations.
+
+After that, I replaced punctuation with spaces and removed numbers. This follows the preprocessing steps discussed in class and makes the texts more consistent for word analysis. Finally, I replaced multiple spaces and line breaks with a single space and removed unnecessary spaces at the beginning and end of each text.
+
+I put all these steps into a Clean_Text() function and applied it to the entire dataset. I saved the cleaned articles in a new column called clean_text, so that the original texts remained available for comparison.
+
+To check whether the cleaning worked, I compared the original and cleaned versions of the articles and checked for missing values. The results showed that all 910 articles had been cleaned successfully, with no missing values.
+
+One limitation is that removing all numbers also means losing potentially useful information, such as years and statistics. However, I kept this step because it was part of the preprocessing method taught in class.
+
 *Hint*: If you find something peculiar in the texts and are unsure how to remove it with regular expressions, ask a GenAI tool for help. If you do, report what it suggested and whether the suggestion was useful.  *(max. 200 words)*
+
+**Answer**
+
+I used ChatGPT to help identify how to remove some unusual elements found in the original articles. In particular, one Anti-Slavery International article contained HTML comments with JavaScript code, while some Save the Children articles included contact information at the end, such as telephone numbers and email addresses.
+
+I asked ChatGPT how to remove these elements using regular expressions in R. It suggested using gsub() to remove HTML comments and scripts, and a separate regular expression to remove the contact section starting with “For interviews or more information please contact:”.
+
+The suggestions were useful because they helped me adapt the cleaning function to the specific content of my dataset. I tested the code by comparing the original and cleaned texts. and the HTML code and contact information were successfully removed.
 
 ```{r}
 
-```
+head(df) # display the first six rows of the dataset
 
-**Answer**
+glimpse(df) # check the column names and data types
+
+examples <- df %>% group_by(source) %>% slice_head(n = 1) %>% ungroup() # Select one text from each organization
+
+for (i in 1:nrow(examples)) {  cat("\n\nORGANIZATION:", examples$source[i], "\n") cat(examples$text[i], "\n") } # print the original texts to unnecessary information
+
+Clean_Text <- function(text){ # text cleaning
+  temp <- tolower(text) # convert everything to lowercase
+  temp <- gsub("(?s)<script[^>]*>.*?</script>", "", temp, perl = TRUE) # remove HTML script elements
+  temp <- gsub("(?s)<!--.*?-->", "", temp, perl = TRUE) # remove HTML comments, which can contain website code
+  temp <- gsub("(s?)(f|ht)tp(s?)://\\S+\\b", "", temp) # remove URLs
+  temp <- gsub("www[.]\\S+", "", temp) # remove links that start with www.
+  temp <- gsub("\\S+@\\S+", "", temp) # remove email addresses
+  temp <- gsub("\\b[a-z]+[.][a-z]{2,3}/[a-z0-9]+\\b", "", temp) # remove short URLs
+  temp <- gsub("(for )?(any )?queries with respect to.{0,150}?editor", "", temp, perl = TRUE) # remove editorial notes mentioning queries and contacting the editor
+  temp <- gsub("(?s)for interviews or more information please contact:.*$", "", temp, perl = TRUE) # remove contact-information footers
+  temp <- gsub("[[:punct:]]+", " ", temp) # replace punctuation with a space
+  temp <- gsub("[[:digit:]]+", "", temp) # remove numbers
+  temp <- gsub("[[:space:]]+", " ", temp) # replace repeated spaces, tabs and line breaks with one space
+  temp <- trimws(temp)  return(temp)} # remove spaces
+
+df$clean_text <- Clean_Text(df$text) # apply the cleaning function to the whole dataset
+
+## comparing the original and cleaned texts
+
+substr(df$text[1], 1, 500) # display the first 500 characters of the original article
+
+substr(df$clean_text[1], 1, 500) # display the first 500 characters of the cleaned article
+
+head(df$clean_text) # display the first six cleaned articles
+
+sum(is.na(df$clean_text)) # count how many articles have missing cleaned text
+
+length(df$text) # check the number of original articles
+length(df$clean_text) # check the number of cleaned articles
+
+```
 
 **Question 2.** Next, conduct a frequency analysis of unigrams, bigrams and trigrams in your pre-processed corpus. For each, report the most frequent terms (e.g., the top 20). Then comment on the results: Which terms and collocations dominate the corpus? Do they relate to human rights issues or do you still see noise that your pre-processing missed? What do bigrams and trigrams reveal that unigrams do not? Do the most frequent n-grams differ across the three organizations? Write your R code below and explain EVERY SINGLE LINE with a comment (#) in your own words. *(max. 500 words)*
 
+**Answer** 
+
+For the unigrams, the most frequent words are “children” (4,206), “slavery” (2,586), “cvt” (2,086), “people” (1,889), “work” (1,749) and “torture” (1,593). Most of these terms are directly related to the topics covered by the organizations. However, some words, such as “cvt”, “anti” and “save”, mainly refer to the organizations themselves. Other words, such as “one”, “also” and “said”, are quite general and do not tell us much about the actual topics.
+
+When looking at the bigrams, we get a clearer picture of the issues discussed. The most frequent combinations are “save children” (958), “anti slavery” (938), “human rights” (843), “slavery international” (584) and “forced labour” (410). Other interesting combinations include “modern slavery”, “child labour”, “human trafficking” and “mental health”. These expressions give us more information than individual words because they show which concepts are discussed together.
+
+The trigrams provide even more detail. The most frequent one is “anti slavery international” (573), followed by “population refugees migration” (81), “bureau population refugees” (80) and “center victims torture” (68). We also find relevant expressions such as “modern slavery act”, “human rights violations” and “mental health care”. However, some trigrams mainly refer to organization names or institutional information rather than human-rights issues.
+
+When comparing the three organizations, we can see that their most frequent terms are quite different. Anti-Slavery International mainly discusses slavery, forced labour, trafficking and domestic workers. CVT focuses more on torture, survivors, refugees and mental health. Save the Children mainly discusses children, families, education, humanitarian aid and child protection.
+
+In general, the results show that most of the frequent terms are relevant to the organizations' work. However, some noise remains, including organization names and administrative expressions such as “please contact”. This suggests that the preprocessing removed much of the unnecessary information, but not everything. The use of bigrams and trigrams helps us identify more specific topics and understand the context in which individual words appear.
+
 ```{r}
 
+corpus_hr <- corpus(df, text_field = "clean_text") # create a corpus with the cleaned texts
+
+summary(corpus_hr) # check the corpus
+
+tokens_hr <- tokens(corpus_hr) # create tokens from the corpus so each article into individual words
+
+tokens_clean <- tokens_select(tokens_hr, pattern = stopwords("en"), selection = "remove", min_nchar = 2) # remove English stopwords and words with fewer than two characters that are not informative
+
+## UNIGRAMS
+
+dfm_uni <- dfm(tokens_clean) # create a document-feature matrix containing individual words
+
+topfeatures(dfm_uni, 20) # display the 20 most frequent individual words in the corpus
+
+## BIGRAMS
+
+tokens_bi <- tokens_ngrams(tokens_clean, n = 2) # combine consecutive words into pairs
+
+dfm_bi <- dfm(tokens_bi) # create a document-feature matrix containing bigrams
+
+topfeatures(dfm_bi, 20) # display the 20 most frequent bigrams in the corpus
+
+# TRIGRAMS
+
+tokens_tri <- tokens_ngrams(tokens_clean, n = 3) # combine consecutive words into groups of three
+
+dfm_tri <- dfm(tokens_tri) # create a document-feature matrix containing trigrams
+
+topfeatures(dfm_tri, 20) # display the 20 most frequent trigrams in the corpus
+
+dfm_uni_source <- dfm_group(dfm_uni, groups = docvars(dfm_uni, "source")) # group the unigram document-feature matrix by organization
+
+lapply(seq_len(ndoc(dfm_uni_source)), function(i) {topfeatures(dfm_uni_source[i, ], 20)}) # display the 20 most frequent unigrams for each organization
+
+dfm_bi_source <- dfm_group(dfm_bi, groups = docvars(dfm_bi, "source")) # group the bigram document-feature matrix by organization
+
+lapply(seq_len(ndoc(dfm_bi_source)), function(i) {topfeatures(dfm_bi_source[i, ], 20)}) # display the 20 most frequent bigrams for each organization
+
+dfm_tri_source <- dfm_group(dfm_tri, groups = docvars(dfm_tri, "source")) # group the trigram document-feature matrix by organization
+
+lapply(seq_len(ndoc(dfm_tri_source)), function(i) {topfeatures(dfm_tri_source[i, ], 20)}) # display the 20 most frequent trigrams for each organization
 
 ```
-
-**Answer**
 
 **Question 3.** Create wordclouds of unigrams, bigrams and trigrams. Be as creative as possible and play around with the arguments of the plotting function you use. Briefly comment on what the wordclouds show. Write your R code below and explain EVERY SINGLE LINE with a comment (#) *(max. 150 words)*
 
 ```{r}
 
+# UNIGRAM
+textplot_wordcloud(dfm_uni,
+                   max_words = 100,
+                   rotation = 0.25,
+                   color = rev(RColorBrewer::brewer.pal(10, "RdBu")))
+
+# BIGRAM 
+textplot_wordcloud(dfm_bi,
+                   max_words = 70,
+                   min_size = 0.7,
+                   max_size = 3,
+                   rotation = 0.25,
+                   color = rev(RColorBrewer::brewer.pal(10, "RdBu")))
+
+# TRIGRAM 
+textplot_wordcloud(dfm_tri,
+                   max_words = 60,
+                   min_size = 0.7,
+                   max_size = 3,
+                   rotation = 0.25,
+                   color = rev(RColorBrewer::brewer.pal(10, "RdBu")))
+
 ```
 
-**Answer**
+**Answer** 
+
+The unigram word cloud shows that “children” is the most frequent term, followed by words such as “slavery”, “people”, “work”, “torture” and “international”. This reflects the main topics covered in the articles. The bigram cloud provides more specific expressions, with “human rights”, “save children”, “anti slavery”, “forced labour” and “mental health” appearing prominently. The trigram cloud gives further detail by highlighting phrases such as “anti slavery international”, “population refugees migration”, “center victims torture” and “modern slavery act”. Overall, the three word clouds show that the dataset focuses on children’s rights, modern slavery, human rights violations and support for vulnerable groups. While the unigram cloud gives a broad overview, the bigrams and trigrams reveal more specific themes and organisations mentioned in the articles.
 
 **Question 4** Visualize the 15 most frequent words across all human rights texts in the corpus. Write your R code below and explain EVERY SINGLE LINE with a comment (#)
 
 ```{r}
 
-```
+dfm_uni %>% # use the unigram document-feature matrix containing all articles
+  textstat_frequency(n = 15) %>% # create a table of the 15 most frequent words
+  ggplot(aes(x = reorder(feature, frequency), # put the words on the x-axis, ordered by frequency
+             y = frequency)) + # put the number of occurrences on the y-axis
+  geom_point() + # draw one point for each word
+  coord_flip() + # flip the axes to make the words easier to read
+  labs(x = NULL, y = "Frequency", # remove the x-axis title and label the y-axis
+       title = "15 Most Frequent Words in Human Rights Texts") + # add a plot title
+  theme_minimal() # use the minimal plot theme
 
+```
 
 # Exercise 2. Sentiment Analysis
 
@@ -107,22 +269,113 @@ Link: https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/0
 
 ```{r}
 
+# create a dictionary with positive and negative words
+
+sentimentdict <- dictionary(list(pos = data_dictionary_LSD2015$positive, # Select the positive words from the Lexicoder dictionary
+  neg = data_dictionary_LSD2015$negative  # Select the negative words from the Lexicoder dictionary
+))
+
+# calculate sentiment for every article
+
+sentiment_hr <- df %>% # use the human rights articles
+  corpus(text_field = "clean_text") %>% # create a corpus using the cleaned text
+  tokens() %>% # split each article into individual words
+  dfm() %>% # count every word in each article
+  dfm_lookup(sentimentdict) %>% # count positive and negative dictionary words
+  convert(to = "data.frame") %>% # convert the results into a regular data frame
+  mutate(sent = pos - neg) # calculate sentiment as positive words minus negative words
+
+sentiment_hr$n_words <- ntoken(tokens(corpus(df, text_field = "clean_text"))) # Count the words in each article
+
+sentiment_hr$sent_per_100 <- sentiment_hr$sent / sentiment_hr$n_words * 100 # Standardise sentiment scores by article length
+
+sentiment_hr <- cbind(df[, c("source", "date")], sentiment_hr[, -1]) # Combine article information with sentiment scores
+
+summary(sentiment_hr$sent_per_100) # Show the main statistics of the sentiment scores
+
+## visualisation
+
+ggplot(sentiment_hr, aes(x = sent_per_100)) + # put sentiment scores on the x-axis
+  geom_histogram(bins = 30, fill = "steelblue") + # show the distribution using 30 bars
+  geom_vline(xintercept = 0, linetype = "dashed") + # add a dashed line for neutral sentiment
+  labs(title = "Sentiment Distribution Across Human Rights Articles", # add a plot title
+       x = "Sentiment per 100 words", # label the x-axis
+       y = "Number of articles") + # label the y-axis
+  theme_minimal() # apply a clean plot theme
+
+## compare organisations
+
+ggplot(sentiment_hr, aes(x = source, y = sent_per_100, fill = source)) + # compare sentiment scores by organisation
+  geom_boxplot() + # show the distribution and median for each organisation
+  labs(title = "Sentiment by Organisation", # add a plot title
+       x = "Organisation", # label the x-axis
+       y = "Sentiment per 100 words") + # label the y-axis
+  theme_minimal() + # apply a clean plot theme
+  theme(legend.position = "none") # remove the unnecessary legend
+
 ```
 
-**Answer**
+**Answer** 
+
+The sentiment is slightly negative, with a mean score of -0.53 and a median of -0.75 per 100 words, This suggests that negative words appear somewhat more frequently than positive words across the corpus. There are also some differences between the organisations. However, this does not necessarily mean that the articles themselves have a negative message. CVT Blog has a positive median sentiment, while Anti-Slavery International and Save the Children have negative medians. This could be related to the topics they cover and the way they communicate. For example, articles discussing torture, abuse, forced labour or human trafficking will naturally contain many words that the dictionary classifies as negative. 
+
+The method using the Lexicoder Sentiment Dictionary is useful to get a first overview of the sentiment in the articles, but as the dictionary simply counts positive and negative words without really understanding their context, the interpretation of the analysis needs to be done carefully. Thus, I believe the method is not sufficient on its own for this type of data.
 
 **Question 2.** Run a sentiment analysis of the corpus using NRC Word-Emotion Association Lexicon. Explore the results in the way you find most insightful (e.g., distributions, plots, comparisons across organizations or over time). Then reflect on the method: Is it appropriate? And does it make sense to run a dictionary-based sentiment analysis on this kind of data? Why or why not? Argue. Write your R code below and explain EVERY SINGLE LINE with a comment (#) *(max. 500 words)*
 
 ```{r}
 
+nrc_scores <- get_nrc_sentiment(df$text) # count emotions in every article
+
+n_words <- ntoken(tokens(corpus(df, text_field = "text"))) # count the total number of words in each article
+
+nrc_hr <- cbind(source = df$source, n_words = n_words, nrc_scores) # add the article information to the emotion scores
+
+nrc_long <- nrc_hr %>% # use the NRC results
+  pivot_longer( # convert the emotion columns into two columns
+    cols = -c(source, n_words), # keep the organisation and word count unchanged
+    names_to = "emotion", # store the emotion names in a column called emotion
+    values_to = "count" # store the emotion counts in a column called count
+  )
+
+nrc_long <- nrc_long %>% # use the NRC table
+  mutate(score_per_100 = count / n_words * 100) # standardise the emotion counts by article length
+
+nrc_summary <- nrc_long %>% # use the NRC results
+  group_by(source, emotion) %>% # create groups for each organisation and emotion
+  summarise(mean_score = mean(score_per_100), .groups = "drop") # calculate the average emotion score per 100 words
+
+nrc_summary # display the average emotion scores for each organisation
+
+## Visualisation
+
+ggplot(nrc_summary, aes(x = reorder(emotion, mean_score), y = mean_score, fill = emotion)) + # put emotions on the x-axis and their average scores on the y-axis
+  geom_col(show.legend = FALSE) + # draw one bar for each emotion
+  coord_flip() + # flip the axes to make the emotion names easier to read
+  facet_wrap(~ source) + # create a separate plot for each organisation
+  labs(title = "NRC Emotion Distribution by Organisation", # add a plot title
+       x = "Emotion", # label the x-axis
+       y = "Average count per 100 words") + # label the y-axis
+  theme_minimal() # use the minimal plot theme
+
 ```
 
 **Answer**
+
+The NRC dictionary gives us a more detailed picture of the emotions expressed in the articles, as it identifies eight emotions in addition to positive and negative words. Looking at the results, positive words are the most frequent across all three organisations, followed by negative words. Trust is also quite prominent, while surprise and disgust appear less frequently.
+
+There are some differences between the organisations. Anti-Slavery International has relatively high counts of both positive and negative words. CVT Blog stands out for its higher level of trust, while Save the Children has higher scores for fear and sadness. This could be related to the different topics they focus on and the way they communicate.
+
+However, we need to be careful when interpreting these results. The dictionary simply identifies words associated with certain emotions, without really understanding the context in which they are used. For example, an article about torture or child abuse may contain many words associated with fear or sadness, even if the purpose of the article is to raise awareness or call for action.
+
+I think the NRC dictionary is useful to explore the emotional content of the articles and identify some differences between organisations. However, it does not fully capture the meaning or intention behind the texts. Human rights articles often deal with serious and sensitive issues, so dictionary-based sentiment analysis should be seen as a starting point rather than a definitive measure of the emotions expressed.
 
 **Question 3.** In your own words, explain the difference between the Lexicoder Sentiment Dictionary and the NRC Word-Emotion Association Lexicon. Then name three text data settings in which running a sentiment analysis makes sense, and explain why. *(max. 500 words)*
 
 **Answer**
 
+The main difference between the two dictionaries is what they measure. The Lexicoder Sentiment Dictionary focuses on positive and negative words, giving us a general idea of whether a text is more positive or negative. The NRC Word-Emotion Association Lexicon goes a bit further, as it also identifies eight emotions: anger, anticipation, disgust, fear, joy, sadness, surprise and trust. So, while Lexicoder gives us an overall sentiment score, NRC allows us to look in more detail at the emotions expressed in the text.
+Sentiment analysis can be useful in many different situations. For example, companies can use it to analyse customer reviews and get an idea of what people think about their products or services, including what customers like and what could be improved. It can also be used to look at reactions on social media, for instance, to see how people respond to a particular event, campaign or political decision. Another example is news articles, where researchers can examine how certain topics or public figures are presented in the media and whether the language used is generally more positive or negative. Sentiment analysis is useful for identifying general patterns in large amounts of text, but dictionaries do not really understand the context in which words are used, thus, the results need to be interpreted carefully, as they do not always reflect what the texts actually mean or what the author is trying to communicate.
 
 # Exercise 3. Topic Modeling (LDA)
 
