@@ -1,10 +1,10 @@
 ---
 title: "Group Assignment 3: Basic Webscaping"
 author:
-  - "Student 1: XXX"
+  - "Student 1: Chiara Zanchetta"
   - "Student 2: XXX"
   - "Student 3: XXX"
-  - "Student 4: XXX"
+
 date: "`r Sys.Date()`"
 output:
   html_document:
