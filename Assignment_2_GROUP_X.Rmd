@@ -2,7 +2,7 @@
 title: "Group Assignment 2: Text Analytics"
 author:
   - "Student 1: Chiara Zanchetta"
-  - "Student 2: XXX"
+  - "Student 2: Jonas Jaccard"
   - "Student 3: XXX"
 
 date: "`r Sys.Date()`"
@@ -121,7 +121,7 @@ glimpse(df) # check the column names and data types
 
 examples <- df %>% group_by(source) %>% slice_head(n = 1) %>% ungroup() # Select one text from each organization
 
-for (i in 1:nrow(examples)) {  cat("\n\nORGANIZATION:", examples$source[i], "\n") cat(examples$text[i], "\n") } # print the original texts to unnecessary information
+for (i in 1:nrow(examples)) {  cat("\n\nORGANIZATION:", examples$source[i], "\n"); cat(examples$text[i], "\n") } # print the original texts to unnecessary information
 
 Clean_Text <- function(text){ # text cleaning
   temp <- tolower(text) # convert everything to lowercase
@@ -136,7 +136,7 @@ Clean_Text <- function(text){ # text cleaning
   temp <- gsub("[[:punct:]]+", " ", temp) # replace punctuation with a space
   temp <- gsub("[[:digit:]]+", "", temp) # remove numbers
   temp <- gsub("[[:space:]]+", " ", temp) # replace repeated spaces, tabs and line breaks with one space
-  temp <- trimws(temp)  return(temp)} # remove spaces
+  temp <- trimws(temp)} # remove spaces
 
 df$clean_text <- Clean_Text(df$text) # apply the cleaning function to the whole dataset
 
