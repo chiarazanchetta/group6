@@ -47,6 +47,10 @@ install.packages("quanteda")
 install.packages("quanteda.textplots")
 install.packages("quanteda.textstats")
 install.packages("syuzhet")
+install.packages("quanteda.textmodels")
+install.packages("glmnet")
+install.packages("rsample")
+install.packages("yardstick")
 
 library(tidyverse)
 library(tidytext)
@@ -56,6 +60,10 @@ library(quanteda)
 library("quanteda.textplots")
 library("quanteda.textstats")
 library(syuzhet)
+library(quanteda.textmodels)
+library(glmnet)
+library (rsample)
+library(yardstick)
 
 # remember to control randomness
 
