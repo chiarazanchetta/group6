@@ -479,7 +479,94 @@ logit_pred <- factor( #convert probabilities into factor
 *Hint:* If your classes are unbalanced, use SMOTE to balance them. Apply it to the training set only, never to the test set!
 
 ```{r}
+class_balance <- df %>% #create a class-balance object
+  count(slavery) %>% #count in slavery
+  mutate(percentage = n / sum(n) * 100) #create a percentage out of it
+class_balance #display
 
+nb_confusion <- yardstick::conf_mat( #confusion matrix for Naive Bayes
+  test_results, #test set data
+  truth = truth, #true class results
+  estimate = naive_bayes #using Naive Bayes as a predicted class
+)
+nb_confusion #display
+
+logit_confusion <- yardstick::conf_mat( #confusion matrix for logistic regression
+  test_results, #test set data
+  truth = truth, #true class results
+  estimate = logistic_regression #using logistic regression as a predicted class
+)
+logit_confusion #display
+
+#Naive Bayes measurement
+
+nb_metrics <- tibble( #set  a data frame
+  model = "Naive Bayes", #based on Naive Bayes 
+  
+  accuracy = yardstick::accuracy_vec( #calculate accuracy
+    truth = test_results$truth, #true class already created
+    estimate = test_results$naive_bayes #predicted class already created
+  ),
+  
+  precision = yardstick::precision_vec( #calculate precision
+    truth = test_results$truth, #true class already created
+    estimate = test_results$naive_bayes, #predicted class already created
+    event_level = "second" #
+  ),
+  
+  recall = yardstick::recall_vec( #calculate recall
+    truth = test_results$truth, # true class already created
+    estimate = test_results$naive_bayes, #predicted class already created
+    event_level = "second" #
+  ),
+  
+  f1 = yardstick::f_meas_vec( #calculate F1
+    truth = test_results$truth, #true class already created
+    estimate = test_results$naive_bayes, #predicted class already created
+    event_level = "second" #
+  )
+)
+
+# Logistic regression measurement
+
+logit_metrics <- tibble( #set  a data frame
+  model = "LASSO logistic regression", #for Logistic regression model
+  
+  accuracy = yardstick::accuracy_vec( #calculate accuracy
+    truth = test_results$truth, #true class already created
+    estimate = test_results$logistic_regression #predicted class already created
+  ),
+  
+  precision = yardstick::precision_vec( #calculate precision
+    truth = test_results$truth, #true class already created
+    estimate = test_results$logistic_regression, #predicted class already created
+    event_level = "second"
+  ),
+  
+  recall = yardstick::recall_vec( #calculate recall
+    truth = test_results$truth, #true class already created
+    estimate = test_results$logistic_regression, #predicted class already created
+    event_level = "second"
+  ),
+  
+  f1 = yardstick::f_meas_vec( #calculate F1
+    truth = test_results$truth, #true class already created
+    estimate = test_results$logistic_regression, #predicted class already created
+    event_level = "second" #
+  )
+)
+
+# Combine both measurements into one table
+
+model_metrics <- bind_rows( #bind data frames of both Naive Bayes and Logistic regression
+  nb_metrics, #Naive Bayes object
+  logit_metrics #logistic regression object
+)
+model_metrics #display summary table
+
+
+majority_baseline <- max(prop.table(table(y_test))) # calculate accuracy -- predict majority class
+majority_baseline #display
 ```
 
 **Answer**
