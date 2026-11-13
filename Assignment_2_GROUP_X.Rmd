@@ -578,6 +578,12 @@ majority_baseline #display
 ```
 
 **Answer**
+The logistic regression coefficient shows which words are the most strongly or not to whether the text is attributed to slavery or not. Positive coefficient will predict class 1 (slavery related) or class 0 (not slavery related).
+
+The ten most predictive words about slavery are: "sold", "panel", "pickers", "estimate", "anti", "conviction", "accused", "guilty", "twitter", and "arrested".
+Some of them have a clear-cut relation with slavery: "sold", "pickers" are words that refer to human trafficking, exploitation, and forced labor. " Pickers" is a term specifically used for force agricultural labor. Additionally, "conviction", "guilty", or "arrested" may be linked to investigations and legal proceedings in the event of slavery or trafficking.
+On the other hand, words such as "anti" or "estimate" or twitter" are not per se related to slavery. "Anti" is most probably linked to Anti Slavery International which constitutes the bulk of the documents (see question 4). Twitter may refer to the social network as a source of information listed in the documents, but it is not related to slavery in itself. Finally, estimate may refer to estimation of whatever traffic but could not be categorized as slavery-related.
+Some others top words in the list are also connoted with slavery ("abducted", "recruiting", "combating"). Overall, it appear that the results are well affiliated with the core topic.
 
 *Question 4.* Note that one of the three organizations is Anti-Slavery International: Could your model simply be learning who wrote the text rather than what it is about? What would be your suggestion? Discuss. *(max. 300 words)*
 
