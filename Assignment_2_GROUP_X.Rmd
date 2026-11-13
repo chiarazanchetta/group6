@@ -410,7 +410,67 @@ Fit Latent Dirichlet Allocation (LDA) topic models to the human rights corpus. T
 *Question 1.* Using the human-coded slavery variable as your outcome, train at least two supervised machine learning classifiers (e.g., Naive Bayes and a logistic regression/a random forest) to predict whether a text is about slavery. Split your data into a training set and a test set. Write your R code below and explain EVERY SINGLE LINE with a comment (#) in your own words.
 
 ```{r}
+df$slavery <- factor(df$slavery, levels = c(0, 1)) #convert outcome into 0/1 factor
 
+set.seed(123) #set seed to control randomness
+
+
+data_split <- initial_split( #initiate a split of the data
+  df, #from df object
+  prop = 0.80, #with a proportion of 80% for the train set; 20% for the test set
+  strata = slavery) #strata ensures the resample have equivalent proportions as the original data set
+
+train <- training(data_split) # store the training observations in a unique data frame
+test <- testing(data_split) #store the testing observations in a unique data frame
+
+
+train_dfm <- corpus(train, text_field = "clean_text") %>% #create a dfm from cleaned train set text
+  tokens(remove_punct = TRUE, remove_numbers = TRUE) %>% #remove punctuation and digits
+  tokens_remove(stopwords("en")) %>% #remove stopwords
+  dfm() %>% #
+  dfm_trim(min_docfreq = 5, docfreq_type = "count") #set up frequency and type
+
+test_dfm <- corpus(test, text_field = "clean_text") %>% #create a dfm from cleaned test set text
+  tokens(remove_punct = TRUE, remove_numbers = TRUE) %>% #remove punctuation and digits
+  tokens_remove(stopwords("en")) %>% #remove stopwords
+  dfm() #
+
+# Make the test matrix contain the same word features as the training matrix.
+test_dfm <- dfm_match(test_dfm, features = featnames(train_dfm)) # Match the test set of a dfm to a train set of dfm)
+
+nb_model <- textmodel_nb( #train Naive Bayes classifier
+  train_dfm, #with dfm from train text
+  y = train$slavery, #from slavery column
+  distribution = "multinomial", #set the distribution
+  smooth = 1 #to do 
+)
+
+nb_pred <- predict(nb_model, newdata = test_dfm) #predict category of test set with Naive Bayes
+
+x_train <- as(train_dfm, "dgCMatrix") #convert train dfm into matrice for glmnet function
+x_test <- as(test_dfm, "dgCMatrix") #convert test dfm into matrice for glmnet function
+
+# Train a cross-validated LASSO logistic-regression classifier.
+set.seed(123) #control randomness and ensure reproductibility
+logit_model <- cv.glmnet( #glmnet fits a generalized linear model via penalized maximum likelihood
+  x = x_train, #input matrix
+  y = as.numeric(as.character(train$slavery)), #response variable
+  family = "binomial", #character string
+  alpha = 1, #elasticity parameter
+  nfolds = 10 #number of lambda
+)
+
+logit_prob <- predict( #probability that a document is actually about slavery
+  logit_model, #from previous object logit_model
+  newx = x_test, #matrice to use for prediction
+  s = "lambda.min", #standard error
+  type = "response" #type of outpout prediction
+)
+
+logit_pred <- factor( #convert probabilities into factor
+  ifelse(logit_prob >= 0.50, 1, 0), #using 0.5 threshold
+  levels = c(0, 1) #with a binary response 0/1
+)
 ```
 
 
