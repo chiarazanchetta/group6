@@ -578,11 +578,81 @@ majority_baseline #display
 ```
 
 **Answer**
+The outcome can be interpreted as reasonably unbalanced: data set is composed of 594 slavery-related documents - 65.3% of the overall corpus - and 316 not slavery-related ones - 34.7% of the corpus.
+Using a 80/20 split, the Naive Bayes and logistic regression classifiers obtained accuracy, ...
 
 *Question 3.* Which words are most predictive of a text being about slavery? Do they make substantive sense? Interpret. *(max. 500 words)* 
 
 ```{r}
+# Extract the logistic-regression coefficients selected by cross-validation.
+logit_coefficients <- coef(
+  logit_model,
+  s = "lambda.min"
+)
 
+# Convert the sparse coefficient matrix into a regular table.
+coefficient_table <- tibble(
+  feature = rownames(logit_coefficients),
+  coefficient = as.numeric(logit_coefficients)
+)
+
+# Remove the intercept because it is not a word from the documents.
+coefficient_table <- coefficient_table %>%
+  filter(feature != "(Intercept)")
+
+# Select the 20 strongest positive predictors of class 1.
+slavery_words <- coefficient_table %>%
+  filter(coefficient > 0) %>%
+  arrange(desc(coefficient)) %>%
+  slice_head(n = 20)
+
+# Display the words most strongly associated with slavery-related documents.
+slavery_words
+
+# Select the 20 strongest negative predictors of class 1.
+non_slavery_words <- coefficient_table %>%
+  filter(coefficient < 0) %>%
+  arrange(coefficient) %>%
+  slice_head(n = 20)
+
+# Display the words most strongly associated with non-slavery documents.
+non_slavery_words
+
+# Add labels describing the category predicted by each group of words.
+predictive_words <- bind_rows(
+  slavery_words %>%
+    mutate(predicted_class = "About slavery"),
+  
+  non_slavery_words %>%
+    mutate(predicted_class = "Not about slavery")
+)
+
+# Reorder the words according to the size of their coefficients.
+predictive_words <- predictive_words %>%
+  mutate(feature = reorder(feature, coefficient))
+
+# Plot the strongest positive and negative predictors.
+ggplot(
+  predictive_words,
+  aes(
+    x = feature,
+    y = coefficient,
+    fill = predicted_class
+  )
+) +
+  geom_col() +
+  coord_flip() +
+  facet_wrap(
+    ~ predicted_class,
+    scales = "free_y"
+  ) +
+  labs(
+    title = "Words Most Predictive of the Slavery Category",
+    x = NULL,
+    y = "Logistic-regression coefficient",
+    fill = "Predicted category"
+  ) +
+  theme_minimal()
 ```
 
 **Answer**
@@ -591,12 +661,16 @@ The logistic regression coefficient shows which words are the most strongly or n
 The ten most predictive words about slavery are: "sold", "panel", "pickers", "estimate", "anti", "conviction", "accused", "guilty", "twitter", and "arrested".
 Some of them have a clear-cut relation with slavery: "sold", "pickers" are words that refer to human trafficking, exploitation, and forced labor. " Pickers" is a term specifically used for force agricultural labor. Additionally, "conviction", "guilty", or "arrested" may be linked to investigations and legal proceedings in the event of slavery or trafficking.
 On the other hand, words such as "anti" or "estimate" or twitter" are not per se related to slavery. "Anti" is most probably linked to Anti Slavery International which constitutes the bulk of the documents (see question 4). Twitter may refer to the social network as a source of information listed in the documents, but it is not related to slavery in itself. Finally, estimate may refer to estimation of whatever traffic but could not be categorized as slavery-related.
-Some others top words in the list are also connoted with slavery ("abducted", "recruiting", "combating"). Overall, it appear that the results are well affiliated with the core topic.
+Some others top words are also connoted with slavery ("abducted", "recruiting", "combating"). Overall, the results are well affiliated with the core topic.
 
 *Question 4.* Note that one of the three organizations is Anti-Slavery International: Could your model simply be learning who wrote the text rather than what it is about? What would be your suggestion? Discuss. *(max. 300 words)*
 
 
 **Answer**
+It is actually a major issue. In fact, as seen in the predictors see in question 3: "anti" is a positive predictor whereas "save", "cvt", and "center" (respectively referring to Anti Slavery International (ASI) Save the Children and Center for Victims of Torture) are negative predictors. These predictors are more general indicators of the source rather than indicators of slavery-related content.
+Moreover, the distribution of the outcome is extremely uneven: almost all the texts published by ASI are coded as being slavery related whereas the texts from the two other organizations are not coded as such. The model is therefore over relying on organization names instead of the content itself while still producing acceptable results.
+
+One idea to solve the issue could be to remove obvious organization names and source-specific terms before training the model. Another and maybe more suitable option would be to collect a more balanced data set in which organizations publish both about slavery and not about slavery. In doing so, it would be possible to split the effect of the source from the content.
 
 
 # Acknowledgement of GenAI Use
